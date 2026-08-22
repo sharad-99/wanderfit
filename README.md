@@ -1,39 +1,42 @@
 # WanderFit
 
-Party-aware activity recommendation engine. Built as the vibe-coded prototype for the
-Digital Transformation & AI capstone (Travel & Tourism).
+Cohort-aware itinerary engine. Vibe-coded prototype for the Digital Transformation & AI
+capstone (Travel & Tourism).
 
-## What it does
+## The idea
 
-Takes the signals already present on a booking form — party composition, ages, trip length,
-budget, pace, themes — and does two things:
+A booking form gives an operator four facts: destination, duration, adults, children.
+Everyone gets the same generic activity list anyway. WanderFit uses those four facts to:
 
-1. **Infers the travel segment** (romantic getaway, family with young children, solo explorer,
-   multigenerational, and so on) with an explicit confidence score and the signals that drove it.
-2. **Recommends six activities** that follow from that segment, each with a reason tied to the
-   party's actual facts, a match score, duration, intensity and cost band.
+1. **Predict the cohort** — romantic getaway, family with young children, solo explorer,
+   multigenerational, friends group — with an explicit confidence score and the signals behind it.
+2. **Name the trip's theme**, derived from the cohort and the destination.
+3. **Build a day-by-day itinerary** sized to the days actually available. Two days is not a
+   truncated five-day plan; it is a different, higher-value selection, with the signature
+   experience placed on Day 1.
 
-A human agent can override the inferred segment at any time and re-run — the machine predicts,
-the agent decides.
+Children's ages are optional. Leave them blank and the engine still runs, assumes an age band,
+and visibly drops its confidence — below 65% it states that a production build would route the
+booking to a human agent.
 
-## Running it
+## Environment variables
 
-Deployed on Vercel. Set one environment variable:
+| Name | Required | Notes |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Yes | From aistudio.google.com |
+| `GEMINI_MODEL` | No | Defaults to `gemini-2.0-flash` |
 
-| Name | Value |
-| --- | --- |
-| `GEMINI_API_KEY` | Your key from aistudio.google.com |
-| `GEMINI_MODEL` | Optional. Defaults to `gemini-2.0-flash`. |
+If the key is missing or the call fails, the app falls back to a deterministic rule-based engine
+and labels itself "Rule-based fallback" in the interface. The demo never goes dark.
 
-If the key is missing or the model call fails, the app falls back to a deterministic rule-based
-engine and labels itself "Offline rules" in the interface. The demo never goes dark.
+Visit `/api/diagnose` on the deployed URL to see exactly why a key is being rejected.
 
 ## Stack
 
-Next.js 14 (App Router), no CSS framework, Gemini API called server-side from
-`app/api/recommend/route.js`. The key is never exposed to the browser.
+Next.js 14 (App Router), no CSS framework. Gemini is called server-side from
+`app/api/recommend/route.js`, so the key is never exposed to the browser.
 
 ## Disclosure
 
 Application code was generated with an AI coding assistant (Claude) and reviewed by the team.
-All activity data is synthetic or illustrative.
+All activity and cost data is synthetic or illustrative.

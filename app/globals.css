@@ -653,3 +653,163 @@ textarea {
     transition: none !important;
   }
 }
+
+/* ---------- theme banner ---------- */
+
+.theme-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 18px;
+  padding: 15px 18px;
+  background: var(--teal-wash);
+  border: 1px solid #cfe0db;
+  border-radius: var(--r);
+}
+
+.theme-bar h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: -0.025em;
+  margin: 0;
+  color: var(--teal);
+}
+
+.theme-bar .sec {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.theme-bar p {
+  margin: 0;
+  flex-basis: 100%;
+  font-size: 13.2px;
+  color: var(--ink-soft);
+}
+
+/* ---------- day tabs ---------- */
+
+.daytabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.daytab {
+  border: 1px solid var(--mist-deep);
+  background: #fbfcfb;
+  border-radius: var(--r);
+  padding: 7px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.daytab[aria-selected="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.dayhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.dayhead h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.dayhead span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ---------- timeline ---------- */
+
+.timeline {
+  position: relative;
+  padding-left: 22px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--mist-deep);
+}
+
+.slot {
+  position: relative;
+  padding: 0 0 20px;
+}
+
+.slot:last-child {
+  padding-bottom: 0;
+}
+
+.slot::before {
+  content: "";
+  position: absolute;
+  left: -21px;
+  top: 7px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--teal);
+}
+
+.slot-time {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 4px;
+}
+
+.slot h5 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  line-height: 1.25;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.slot h5 b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.slot p {
+  margin: 0 0 9px;
+  font-size: 13.2px;
+  color: var(--ink-soft);
+}
