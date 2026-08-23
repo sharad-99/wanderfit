@@ -146,7 +146,17 @@ This is the core of the task: with only ${t.duration} day(s), the itinerary must
 selection possible, not a generic list. Rules:
 - Front-load the highest value. Day 1 carries the single most defining experience of ${t.destination}
   for this cohort. Never leave the signature experience to the last day.
-- Slots per day: 2 if the cohort has children under 12 or the trip is 1 day; otherwise 3.
+- HARD CAP: the total duration of all activities in any single day must not exceed 10 hours.
+  Count travel-heavy excursions at their full length. If one anchor experience runs long, let it be
+  the only thing scheduled that day rather than breaching the cap.
+- HARD CAP: the total durationHours of all activities in any single day must not exceed 10. If one
+  activity is itself longer than 10 hours (an overnight houseboat, a far-flung lake), it is the only
+  activity that day. Prefer 2 or 3 activities per day; use fewer if the hours would breach the cap.
+- Slots per day: 2 if the cohort has children under 12 or the trip is 1 day; otherwise 3. Schedule
+  fewer than that whenever the 10-hour cap would otherwise be breached.
+- Activities must be largely exclusive to this cohort. A romantic getaway and a friends group going
+  to the same destination should share at most one or two universal landmarks; everything else must
+  differ. Do not fall back on the safe, generic list that suits everyone.
 - Give each day a short "title" of three to five words naming that day's idea.
 - "time" is a slot label: Morning, Midday, Afternoon, Evening or Night.
 - Cluster each day geographically so the party is not crossing the destination twice in one day.
@@ -160,6 +170,14 @@ selection possible, not a generic list. Rules:
 - "estCostPerPerson" is a short string like "~₹1,200" or "~$35". Use the local currency of
   ${t.destination} where you can, otherwise Indian rupees.
 - Every activity must plausibly exist in or near ${t.destination}.
+- Activities must be COHORT-SPECIFIC, not generic crowd-pleasers. A friends group and a
+  multigenerational family visiting the same city should receive almost entirely different lists.
+  Only a destination's two or three genuinely unmissable sights may appear for every cohort.
+  Concretely: nightlife and high-adrenaline activities belong to friends and teenagers, not to
+  parties with young children or grandparents; spas, private dining and sunset-timed experiences
+  belong to couples; water parks and animal attractions belong to families with young children;
+  seated, low-effort, short-walk options belong to multigenerational parties; and solo travellers
+  get the walking, market, workshop and conversation-friendly end of the catalogue.
 
 STEP 4 — BUDGET
 "perPersonTotal" and "groupTotal" as short currency strings covering activities only, for the whole
@@ -321,25 +339,35 @@ function slotMatches(pref, label) {
   return pref === "A";
 }
 
+const MAX_DAY_HOURS = 10;
+
 function fallbackPayload(t) {
   const cohort = predictCohort(t);
   const tags = COHORT_TAGS[cohort.code] || ["SOLO"];
-  const pool = (CATALOGUE[t.destination] || CATALOGUE["Goa"])
-    .filter((row) => tags.some((tag) => row[2].includes(tag)))
+  const all = CATALOGUE[t.destination] || CATALOGUE["Goa"];
+  const pool = all
+    .filter((r) => tags.some((tag) => r[2].split(" ").includes(tag)))
     .sort((a, b) => b[6] - a[6]);
+  const backup = [...all].sort((a, b) => b[6] - a[6]);
 
-  const backup = (CATALOGUE[t.destination] || CATALOGUE["Goa"]).sort((a, b) => b[6] - a[6]);
   const kidsYoung = cohort.code === "FAMILY-YOUNGKIDS" || cohort.code === "FAMILY-MIXED";
-  const perDay = kidsYoung || t.duration === 1 ? 2 : 3;
-  const labels = perDay === 2 ? SLOTS_2 : SLOTS_3;
+  const maxSlots = kidsYoung || t.duration >= 3 ? 2 : 3;
+  const labels = maxSlots === 2 ? ["Morning", "Late afternoon"] : ["Morning", "Afternoon", "Evening"];
   const party = t.adults + t.children;
 
   const used = new Set();
-  const take = (label) => {
-    let pick = pool.find((r) => !used.has(r[0]) && slotMatches(r[7], label));
-    if (!pick) pick = pool.find((r) => !used.has(r[0]));
-    if (!pick) pick = backup.find((r) => !used.has(r[0]));
-    if (!pick) pick = backup[0];
+  let borrowed = 0;
+  const inPool = new Set(pool.map((r) => r[0]));
+  const fits = (r, remaining, first) => (first ? true : r[4] <= remaining);
+  const take = (label, remaining, first) => {
+    const free = (r) => !used.has(r[0]);
+    let pick =
+      pool.find((r) => free(r) && slotMatches(r[7], label) && fits(r, remaining, first)) ||
+      pool.find((r) => free(r) && fits(r, remaining, first)) ||
+      backup.find((r) => free(r) && slotMatches(r[7], label) && fits(r, remaining, first)) ||
+      backup.find((r) => free(r) && fits(r, remaining, first));
+    if (!pick) return null;
+    if (!inPool.has(pick[0])) borrowed += 1;
     used.add(pick[0]);
     return pick;
   };
@@ -350,34 +378,45 @@ function fallbackPayload(t) {
 
   for (let d = 1; d <= t.duration; d++) {
     const slots = [];
-    for (let s = 0; s < perDay; s++) {
-      const [name, category, , intensity, hours, cost, value, ,] = take(labels[s]);
+    let hours = 0;
+
+    for (let i = 0; i < maxSlots; i++) {
+      const remaining = MAX_DAY_HOURS - hours;
+      if (remaining <= 0.5 && slots.length) break;
+      const row = take(labels[i], remaining, slots.length === 0);
+      if (!row) break;
+      const [name, category, , intensity, hrs, cost, value] = row;
+      hours += hrs;
       perPerson += cost;
       slots.push({
-        time: labels[s],
+        time: labels[i],
         name,
         category,
-        whyFit: `Fits a ${cohort.label.toLowerCase()} of ${t.adults}${t.adultsPlus ? "+" : ""} adult(s) and ${t.children}${t.childrenPlus ? "+" : ""} child(ren) with ${t.duration} day(s) to work with.`,
-        durationHours: hours,
+        whyFit: `Chosen for a ${cohort.label.toLowerCase()} of ${t.adults}${t.adultsPlus ? "+" : ""} adult(s) and ${t.children}${t.childrenPlus ? "+" : ""} child(ren) with ${t.duration} day(s) to work with.`,
+        durationHours: hrs,
         intensity,
         estCostPerPerson: cost === 0 ? "Free" : `~₹${cost.toLocaleString("en-IN")}`,
-        valueScore: Math.max(45, value - (d - 1) * 3 - s * 2),
+        valueScore: Math.max(45, value - (d - 1) * 3 - i * 2),
       });
+      if (hours >= MAX_DAY_HOURS) break;
     }
+
+    if (!slots.length) break;
+
     let title = "The day that defines the trip";
     if (d > 1) {
       title = "";
-      for (const s of slots) {
-        const candidate = DAY_TITLES[s.category];
-        if (candidate && !usedTitles.has(candidate)) {
-          title = candidate;
+      for (const sl of slots) {
+        const cand = DAY_TITLES[sl.category];
+        if (cand && !usedTitles.has(cand)) {
+          title = cand;
           break;
         }
       }
       if (!title) title = `Day ${d} — a bit of everything`;
     }
     usedTitles.add(title);
-    days.push({ dayNumber: d, title, slots });
+    days.push({ dayNumber: d, title, slots, plannedHours: Math.round(hours * 10) / 10 });
   }
 
   return {
@@ -395,6 +434,11 @@ function fallbackPayload(t) {
     },
     limitations: [
       "Offline mode: this itinerary came from the built-in destination catalogue, not a language model.",
+      ...(borrowed
+        ? [
+            `A ${t.duration}-day plan exhausted the activities specific to this cohort, so ${borrowed} slot(s) fall back to broader crowd-pleasers.`,
+          ]
+        : []),
       "Costs are indicative band estimates and ignore season, weekday and group discounts.",
       "Opening hours and availability are not checked against live sources.",
     ],

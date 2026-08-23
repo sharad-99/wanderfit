@@ -331,7 +331,9 @@ export default function Page() {
                       <h3>{day.title}</h3>
                       <span>
                         {day.slots.length} activities ·{" "}
-                        {day.slots.reduce((s, x) => s + (x.durationHours || 0), 0)}h
+                        {Math.round(day.slots.reduce((s, x) => s + (x.durationHours || 0), 0) * 10) /
+                          10}
+                        h of 10h
                       </span>
                     </div>
 
