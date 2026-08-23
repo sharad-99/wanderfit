@@ -1,24 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { DESTINATIONS } from "./data/catalogue";
 
-const PRESETS = {
-  couple: {
-    label: "2 adults, 4 days",
-    form: { destination: "Bali, Indonesia", duration: 4, adults: 2, children: 0, childAges: [] },
-  },
-  family: {
-    label: "Family, 2 days",
-    form: { destination: "Singapore", duration: 2, adults: 2, children: 2, childAges: [9, 6] },
-  },
-  solo: {
-    label: "Solo, 5 days",
-    form: { destination: "Kyoto, Japan", duration: 5, adults: 1, children: 0, childAges: [] },
-  },
-};
+const DURATIONS = [1, 2, 3, 4, 5, 6, 7];
 
 export default function Page() {
-  const [form, setForm] = useState(PRESETS.family.form);
+  const [form, setForm] = useState({
+    destination: DESTINATIONS[0],
+    duration: 3,
+    adults: 2,
+    adultsPlus: false,
+    children: 0,
+    childrenPlus: false,
+    childAges: [],
+  });
   const [result, setResult] = useState(null);
   const [activeDay, setActiveDay] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -26,8 +22,17 @@ export default function Page() {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const setChildren = (n) =>
-    setForm((f) => ({ ...f, children: n, childAges: f.childAges.slice(0, n) }));
+  const setChildren = (v) =>
+    setForm((f) => {
+      const plus = v === "3+";
+      const n = plus ? 3 : Number(v);
+      return { ...f, children: n, childrenPlus: plus, childAges: [] };
+    });
+
+  const setAdults = (v) => {
+    const plus = v === "3+";
+    setForm((f) => ({ ...f, adults: plus ? 3 : Number(v), adultsPlus: plus }));
+  };
 
   const setAge = (i, v) =>
     setForm((f) => {
@@ -97,47 +102,41 @@ export default function Page() {
           }}
         >
           <div className="panel-head">
-            <p className="eyebrow">Booking form</p>
-            <div className="chips">
-              {Object.entries(PRESETS).map(([k, p]) => (
-                <button
-                  key={k}
-                  type="button"
-                  className="chip"
-                  onClick={() => {
-                    setForm(p.form);
-                    setResult(null);
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
+            <p className="eyebrow">Trip inputs</p>
+            <span className="mode-flag">4 fields</span>
           </div>
 
           <div className="panel-body">
             <div className="field">
               <label htmlFor="dest">Destination</label>
-              <input
+              <select
                 id="dest"
                 className="control"
                 value={form.destination}
                 onChange={(e) => set("destination", e.target.value)}
-                placeholder="Jaipur, India"
-              />
+              >
+                {DESTINATIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="field">
-              <label htmlFor="dur">Duration (days)</label>
-              <input
+              <label htmlFor="dur">Duration</label>
+              <select
                 id="dur"
                 className="control"
-                type="number"
-                min="1"
-                max="7"
                 value={form.duration}
                 onChange={(e) => set("duration", Number(e.target.value))}
-              />
+              >
+                {DURATIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d} {d === 1 ? "day" : "days"}
+                  </option>
+                ))}
+              </select>
               <p className="hint">
                 The engine plans for exactly this many days — fewer days means harder choices, not a
                 shorter version of the same list.
@@ -147,27 +146,30 @@ export default function Page() {
             <div className="field row2">
               <div>
                 <label htmlFor="ad">Adults</label>
-                <input
+                <select
                   id="ad"
                   className="control"
-                  type="number"
-                  min="1"
-                  max="12"
-                  value={form.adults}
-                  onChange={(e) => set("adults", Number(e.target.value))}
-                />
+                  value={form.adultsPlus ? "3+" : String(form.adults)}
+                  onChange={(e) => setAdults(e.target.value)}
+                >
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3+">More than 2</option>
+                </select>
               </div>
               <div>
                 <label htmlFor="ch">Children</label>
-                <input
+                <select
                   id="ch"
                   className="control"
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={form.children}
-                  onChange={(e) => setChildren(Number(e.target.value))}
-                />
+                  value={form.childrenPlus ? "3+" : String(form.children)}
+                  onChange={(e) => setChildren(e.target.value)}
+                >
+                  <option value="0">None</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3+">More than 2</option>
+                </select>
               </div>
             </div>
 

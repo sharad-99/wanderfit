@@ -1,3 +1,5 @@
+import { CATALOGUE, COHORT_TAGS, DESTINATIONS } from "../../data/catalogue";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -108,8 +110,8 @@ day-by-day itinerary that extracts the most value from the number of days availa
 TRIP BRIEF
 Destination: ${t.destination}
 Duration: ${t.duration} day(s)
-Adults: ${t.adults}
-Children: ${t.children}
+Adults: ${t.adults}${t.adultsPlus ? " or more" : ""}
+Children: ${t.children}${t.childrenPlus ? " or more" : ""}
 Ages of children: ${kidAges}
 
 STEP 1 — COHORT PREDICTION
@@ -285,138 +287,97 @@ function predictCohort(t) {
 }
 
 const THEMES = {
-  "SOLO-EXPLORER": ["Discovery and street food", "Culture at your own pace"],
+  "SOLO-EXPLORER": ["Discovery at your own pace", "Food and street life"],
   "COUPLE-ROMANTIC": ["Romance and scenery", "Slow evenings"],
-  "FRIENDS-GROUP": ["Shared adventure", "Nights out"],
+  "FRIENDS-GROUP": ["Shared adventure", "Long nights"],
   "FAMILY-YOUNGKIDS": ["Play and wonder", "Short hops, early nights"],
   "FAMILY-TEENS": ["Adventure and autonomy", "Photo-worthy days"],
   "FAMILY-MIXED": ["Something for every age", "Flexible days"],
   MULTIGEN: ["Togetherness at an easy pace", "Comfort first"],
 };
 
-const POOL = {
-  "SOLO-EXPLORER": [
-    ["Old quarter walking tour", "Culture", "Moderate", 3, 94],
-    ["Morning market and breakfast trail", "Food", "Low", 2.5, 90],
-    ["Local craft workshop", "Learning", "Low", 2.5, 82],
-    ["Sunset viewpoint hike", "Outdoors", "Moderate", 2, 86],
-    ["Live music at a neighbourhood bar", "Nightlife", "Low", 3, 74],
-    ["Day trip to a nearby village", "Culture", "Moderate", 6, 88],
-    ["Museum of regional history", "Culture", "Low", 2, 70],
-    ["Street-food crawl after dark", "Food", "Low", 3, 84],
-    ["Riverside cycle route", "Outdoors", "Moderate", 3, 72],
-  ],
-  "COUPLE-ROMANTIC": [
-    ["Sunset cruise for two", "Scenic", "Low", 2, 95],
-    ["Private rooftop dinner", "Dining", "Low", 2.5, 91],
-    ["Couples spa afternoon", "Wellness", "Low", 3, 84],
-    ["Heritage quarter stroll", "Culture", "Low", 2, 80],
-    ["Vineyard or estate tasting", "Food", "Low", 4, 86],
-    ["Dawn hot-air balloon ride", "Adventure", "Moderate", 3, 89],
-    ["Secluded beach morning", "Outdoors", "Low", 3, 78],
-    ["Chef's counter tasting menu", "Dining", "Low", 2.5, 82],
-    ["Late-night jazz and cocktails", "Nightlife", "Low", 2.5, 71],
-  ],
-  "FRIENDS-GROUP": [
-    ["Group watersports session", "Adventure", "High", 3, 92],
-    ["Brewery or distillery tour", "Food", "Low", 3, 84],
-    ["Beach club afternoon", "Leisure", "Low", 5, 88],
-    ["Sunset catamaran", "Scenic", "Low", 3, 90],
-    ["Night market and bar hop", "Nightlife", "Low", 4, 86],
-    ["Escape room challenge", "Attraction", "Low", 1.5, 70],
-    ["Cliff or waterfall trek", "Adventure", "High", 5, 80],
-    ["Long shared lunch", "Dining", "Low", 2, 68],
-    ["Karaoke or live gig night", "Nightlife", "Low", 3, 72],
-  ],
-  "FAMILY-YOUNGKIDS": [
-    ["Water park day pass", "Attraction", "Moderate", 5, 94],
-    ["Wildlife park with feeding show", "Attraction", "Low", 4, 90],
-    ["Interactive science museum", "Learning", "Low", 3, 85],
-    ["Shallow lagoon beach morning", "Outdoors", "Low", 3, 82],
-    ["Toy train or harbour ferry ride", "Scenic", "Low", 1.5, 76],
-    ["Family cooking class", "Food", "Low", 2, 70],
-    ["Aquarium with touch pool", "Attraction", "Low", 2.5, 88],
-    ["Playground park and picnic", "Outdoors", "Low", 2, 66],
-    ["Early puppet or magic show", "Entertainment", "Low", 1.5, 68],
-  ],
-  "FAMILY-TEENS": [
-    ["Zipline and adventure park", "Adventure", "High", 4, 93],
-    ["Surf or paddleboard lesson", "Adventure", "Moderate", 3, 89],
-    ["Snorkel or dive taster", "Adventure", "Moderate", 4, 87],
-    ["Street-art and photo walk", "Culture", "Low", 2.5, 78],
-    ["Night market food trail", "Food", "Low", 3, 84],
-    ["Escape room challenge", "Attraction", "Low", 1.5, 72],
-    ["Kayak through the mangroves", "Outdoors", "Moderate", 3, 80],
-    ["Rooftop viewpoint at sunset", "Scenic", "Low", 1.5, 74],
-    ["Go-karting or bowling evening", "Entertainment", "Moderate", 2, 68],
-  ],
-  "FAMILY-MIXED": [
-    ["Wildlife park with feeding show", "Attraction", "Low", 4, 90],
-    ["Harbour or lake boat ride", "Scenic", "Low", 2, 84],
-    ["Interactive science museum", "Learning", "Low", 3, 82],
-    ["Beach morning with easy access", "Outdoors", "Low", 3, 86],
-    ["Family cooking class", "Food", "Low", 2, 74],
-    ["Cable car to a viewpoint", "Scenic", "Low", 2, 80],
-    ["Heritage site with guided loop", "Culture", "Low", 2.5, 76],
-    ["Early evening light show", "Entertainment", "Low", 1.5, 70],
-    ["Market visit and shared lunch", "Food", "Low", 2, 66],
-  ],
-  MULTIGEN: [
-    ["Private van heritage tour", "Culture", "Low", 4, 92],
-    ["Accessible garden and conservatory", "Outdoors", "Low", 2, 86],
-    ["Lakeside boat ride", "Scenic", "Low", 1.5, 88],
-    ["Long-table regional lunch", "Dining", "Low", 2, 80],
-    ["Craft workshop with seating", "Learning", "Low", 2, 74],
-    ["Evening light-and-sound show", "Culture", "Low", 1.5, 78],
-    ["Cable car to a viewpoint", "Scenic", "Low", 2, 82],
-    ["Temple or cathedral visit", "Culture", "Low", 1.5, 70],
-    ["Hotel garden afternoon tea", "Leisure", "Low", 1.5, 64],
-  ],
+const DAY_TITLES = {
+  Heritage: "Into the old city",
+  Culture: "Local colour",
+  Scenic: "Views and long looks",
+  Adventure: "The one with the adrenaline",
+  Outdoors: "Out in the open",
+  Attraction: "The big-ticket day",
+  Food: "Eat your way through",
+  Dining: "A day built around the table",
+  Learning: "Curiosity day",
+  Wellness: "Slow it right down",
+  Nightlife: "After dark",
+  Shopping: "Markets and finds",
 };
 
-const SLOT_LABELS = [
-  ["Morning", "Afternoon", "Evening"],
-  ["Morning", "Late afternoon"],
-];
+const SLOTS_3 = ["Morning", "Afternoon", "Evening"];
+const SLOTS_2 = ["Morning", "Late afternoon"];
+
+function slotMatches(pref, label) {
+  if (pref === "X") return true;
+  if (label === "Morning") return pref === "M";
+  if (label === "Evening") return pref === "E";
+  return pref === "A";
+}
 
 function fallbackPayload(t) {
   const cohort = predictCohort(t);
-  const pool = [...(POOL[cohort.code] || POOL["SOLO-EXPLORER"])].sort((a, b) => b[4] - a[4]);
-  const kidsYoung =
-    cohort.code === "FAMILY-YOUNGKIDS" ||
-    (cohort.code === "FAMILY-MIXED" && t.children > 0);
+  const tags = COHORT_TAGS[cohort.code] || ["SOLO"];
+  const pool = (CATALOGUE[t.destination] || CATALOGUE["Goa"])
+    .filter((row) => tags.some((tag) => row[2].includes(tag)))
+    .sort((a, b) => b[6] - a[6]);
+
+  const backup = (CATALOGUE[t.destination] || CATALOGUE["Goa"]).sort((a, b) => b[6] - a[6]);
+  const kidsYoung = cohort.code === "FAMILY-YOUNGKIDS" || cohort.code === "FAMILY-MIXED";
   const perDay = kidsYoung || t.duration === 1 ? 2 : 3;
-  const labels = perDay === 2 ? SLOT_LABELS[1] : SLOT_LABELS[0];
+  const labels = perDay === 2 ? SLOTS_2 : SLOTS_3;
   const party = t.adults + t.children;
 
+  const used = new Set();
+  const take = (label) => {
+    let pick = pool.find((r) => !used.has(r[0]) && slotMatches(r[7], label));
+    if (!pick) pick = pool.find((r) => !used.has(r[0]));
+    if (!pick) pick = backup.find((r) => !used.has(r[0]));
+    if (!pick) pick = backup[0];
+    used.add(pick[0]);
+    return pick;
+  };
+
   const days = [];
-  let idx = 0;
-  let runningCost = 0;
+  const usedTitles = new Set();
+  let perPerson = 0;
 
   for (let d = 1; d <= t.duration; d++) {
     const slots = [];
     for (let s = 0; s < perDay; s++) {
-      const item = pool[idx % pool.length];
-      idx++;
-      const [name, category, intensity, hours, base] = item;
-      const cost = category === "Dining" || category === "Attraction" ? 2200 : 1400;
-      runningCost += cost;
+      const [name, category, , intensity, hours, cost, value, ,] = take(labels[s]);
+      perPerson += cost;
       slots.push({
         time: labels[s],
-        name: `${name} — ${t.destination}`,
+        name,
         category,
-        whyFit: `Selected for a ${cohort.label.toLowerCase()} of ${t.adults} adult(s) and ${t.children} child(ren) with only ${t.duration} day(s) available.`,
+        whyFit: `Fits a ${cohort.label.toLowerCase()} of ${t.adults}${t.adultsPlus ? "+" : ""} adult(s) and ${t.children}${t.childrenPlus ? "+" : ""} child(ren) with ${t.duration} day(s) to work with.`,
         durationHours: hours,
         intensity,
-        estCostPerPerson: `~₹${cost.toLocaleString("en-IN")}`,
-        valueScore: Math.max(45, base - (d - 1) * 5 - s * 4),
+        estCostPerPerson: cost === 0 ? "Free" : `~₹${cost.toLocaleString("en-IN")}`,
+        valueScore: Math.max(45, value - (d - 1) * 3 - s * 2),
       });
     }
-    days.push({
-      dayNumber: d,
-      title: d === 1 ? "The one you came for" : `Day ${d} — widening out`,
-      slots,
-    });
+    let title = "The day that defines the trip";
+    if (d > 1) {
+      title = "";
+      for (const s of slots) {
+        const candidate = DAY_TITLES[s.category];
+        if (candidate && !usedTitles.has(candidate)) {
+          title = candidate;
+          break;
+        }
+      }
+      if (!title) title = `Day ${d} — a bit of everything`;
+    }
+    usedTitles.add(title);
+    days.push({ dayNumber: d, title, slots });
   }
 
   return {
@@ -424,18 +385,18 @@ function fallbackPayload(t) {
     theme: {
       primary: THEMES[cohort.code][0],
       secondary: THEMES[cohort.code][1],
-      why: `A party of ${t.adults} adult(s) and ${t.children} child(ren) in ${t.destination} for ${t.duration} day(s) points to this theme more strongly than any alternative.`,
+      why: `A party of ${t.adults}${t.adultsPlus ? " or more" : ""} adult(s) and ${t.children}${t.childrenPlus ? " or more" : ""} child(ren) in ${t.destination} for ${t.duration} day(s) points to this theme more strongly than any alternative.`,
     },
     days,
     budget: {
-      perPersonTotal: `~₹${runningCost.toLocaleString("en-IN")}`,
-      groupTotal: `~₹${(runningCost * party).toLocaleString("en-IN")}`,
-      note: "Activities only. Flights, accommodation and local transport are excluded.",
+      perPersonTotal: `~₹${perPerson.toLocaleString("en-IN")}`,
+      groupTotal: `~₹${(perPerson * party).toLocaleString("en-IN")}`,
+      note: "Activities and entry tickets only. Flights, accommodation and local transport are excluded.",
     },
     limitations: [
-      "Offline mode: this itinerary came from a fixed rule-based catalogue, not a language model.",
-      "Activity names are illustrative templates and are not checked against live availability.",
-      "Costs are static band estimates and ignore season, weekday and group discounts.",
+      "Offline mode: this itinerary came from the built-in destination catalogue, not a language model.",
+      "Costs are indicative band estimates and ignore season, weekday and group discounts.",
+      "Opening hours and availability are not checked against live sources.",
     ],
   };
 }
@@ -452,11 +413,14 @@ export async function POST(req) {
     return Response.json({ error: "Add a destination before running the engine." }, { status: 400 });
   }
 
+  const dest = String(body.destination).slice(0, 120).trim();
   const trip = {
-    destination: String(body.destination).slice(0, 120).trim(),
+    destination: DESTINATIONS.includes(dest) ? dest : dest,
     duration: Math.min(Math.max(Number(body.duration) || 3, 1), 7),
     adults: Math.min(Math.max(Number(body.adults) || 1, 1), 12),
     children: Math.min(Math.max(Number(body.children) || 0, 0), 10),
+    adultsPlus: Boolean(body.adultsPlus),
+    childrenPlus: Boolean(body.childrenPlus),
     childAges: Array.isArray(body.childAges)
       ? body.childAges.map(Number).filter((n) => !Number.isNaN(n) && n >= 0 && n < 18).slice(0, 10)
       : [],
